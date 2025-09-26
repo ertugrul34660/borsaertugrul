@@ -1,0 +1,2514 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yatırımcı Paneli</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #f5f5f5; font-family: 'Segoe UI', Arial, sans-serif; }
+        .container { max-width: 800px; margin: 40px auto; background: #fff; border-radius: 10px; box-shadow: 0 0 20px rgba(0,0,0,0.1); padding: 30px; }
+        h1, h2, h3 { color: #1e3c72; text-align: center; margin-bottom: 20px; }
+        .input-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; color: #333; }
+        input, select { width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 5px; font-size: 16px; }
+        button { width: 100%; padding: 12px; background: #1e3c72; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; margin-top: 10px; }
+        button:hover { background: #2a5298; }
+        .error { color: #ff4444; text-align: center; margin-top: 10px; display: none; }
+        .success { color: #28a745; text-align: center; margin-top: 10px; display: none; }
+        .switch-form { text-align: center; margin-top: 15px; }
+        .switch-form a { color: #1e3c72; text-decoration: underline; cursor: pointer; }
+        .profile-card, .stats-container, .portfolio { margin-top: 30px; }
+        .portfolio-item { background: #f8f9fa; padding: 15px; margin-bottom: 10px; border-radius: 5px; border-left: 4px solid #1e3c72; }
+        .profit { color: #28a745; } .loss { color: #dc3545; }
+        .logout-btn { background: #dc3545; margin-top: 20px; }
+        .logout-btn:hover { background: #c82333; }
+        .tab-btn { padding: 8px 16px; margin: 0 5px; border: none; border-radius: 5px; background: #ddd; color: #1e3c72; cursor: pointer; }
+        .tab-btn.active { background: #1e3c72; color: #fff; }
+        .transaction-item { padding: 15px; margin-bottom: 10px; background: #f8f9fa; border-radius: 5px; display: flex; justify-content: space-between; align-items: center; }
+        .status-pending { color: #ffc107; }
+        .status-approved { color: #28a745; }
+        .status-rejected { color: #dc3545; }
+        .chart-container { height: 300px; margin-top: 20px; }
+        .admin-users-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .admin-users-table th, .admin-users-table td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        .admin-users-table th { background: #1e3c72; color: white; }
+        .admin-users-table tr:nth-child(even) { background: #f8f9fa; }
+        .admin-action-btn { width: auto; padding: 8px 16px; margin: 0 5px; }
+        .balance-display { font-size: 1.2em; margin: 20px 0; padding: 15px; background: #f8f9fa; border-radius: 5px; text-align: center; }
+        .profile-photo-container { text-align: center; margin: 20px 0; }
+        .profile-photo { width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 3px solid #1e3c72; }
+        .photo-upload-btn { width: auto; margin: 10px auto; display: block; }
+        #photoInput { display: none; }
+        .delete-btn { background: #dc3545; }
+        .delete-btn:hover { background: #c82333; }
+        
+        /* Dark Mode Styles */
+        .dark-mode { background: #1a1a1a; color: #e0e0e0; }
+        .dark-mode .container { background: #2d2d2d; color: #e0e0e0; }
+        .dark-mode .portfolio-item { background: #3a3a3a; color: #e0e0e0; }
+        .dark-mode .password-change-section { background: #3a3a3a; border-color: #555; }
+        .dark-mode .balance-display { background: #3a3a3a; }
+        .dark-mode .transaction-item { background: #3a3a3a; }
+        .dark-mode .admin-users-table th { background: #1e3c72; }
+        .dark-mode .admin-users-table tr:nth-child(even) { background: #3a3a3a; }
+        .dark-mode input, .dark-mode select { background: #3a3a3a; color: #e0e0e0; border-color: #555; }
+        .dark-mode .tab-btn { background: #555; color: #e0e0e0; }
+        .dark-mode .tab-btn.active { background: #1e3c72; }
+        
+        /* Theme Toggle Button */
+        .theme-toggle { position: fixed; top: 20px; right: 20px; z-index: 1000; background: #1e3c72; color: white; border: none; border-radius: 50%; width: 50px; height: 50px; cursor: pointer; font-size: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.3); }
+        .theme-toggle:hover { background: #2a5298; }
+        .dark-mode .theme-toggle { background: #444; }
+        .dark-mode .theme-toggle:hover { background: #555; }
+        
+        /* Mobile Responsive Improvements */
+        @media (max-width: 768px) {
+            .container { margin: 20px auto; padding: 20px; }
+            .theme-toggle { top: 10px; right: 10px; width: 40px; height: 40px; font-size: 16px; }
+            .admin-action-btn { width: 100%; margin: 5px 0; }
+            .tab-btn { width: 100%; margin: 5px 0; }
+            .transaction-item { flex-direction: column; align-items: flex-start; }
+            .transaction-item > div { margin-bottom: 10px; }
+            .admin-users-table { font-size: 14px; }
+            .admin-users-table th, .admin-users-table td { padding: 8px; }
+        }
+        
+        @media (max-width: 480px) {
+            .container { margin: 10px; padding: 15px; }
+            h1 { font-size: 1.5em; }
+            h2 { font-size: 1.3em; }
+            .profile-photo { width: 120px; height: 120px; }
+        }
+        
+        .password-change-section { background: #f8f9fa; padding: 20px; border-radius: 8px; margin-top: 20px; border: 1px solid #ddd; }
+        .password-change-btn { width: auto; padding: 10px 20px; }
+    </style>
+</head>
+<body>
+<!-- Theme Toggle Button -->
+<button class="theme-toggle" onclick="toggleTheme()" title="Tema Değiştir">
+    <span id="themeIcon">🌙</span>
+</button>
+
+<div class="container" id="authContainer">
+    <h1 id="formTitle">Giriş Yap</h1>
+    <div id="registerForm" style="display:none;">
+        <div class="input-group"><label>Ad Soyad</label><input type="text" id="regFullName"></div>
+        <div class="input-group"><label>Kullanıcı Adı</label><input type="text" id="regUsername"></div>
+        <div class="input-group"><label>E-posta</label><input type="email" id="regEmail"></div>
+        <div class="input-group"><label>Telefon</label><input type="tel" id="regPhone"></div>
+        <div class="input-group"><label>Şifre</label><input type="password" id="regPassword"></div>
+        <div class="input-group"><label>Şifre Tekrar</label><input type="password" id="regPassword2"></div>
+        <button onclick="register()">Kayıt Ol</button>
+        <p class="error" id="registerError"></p>
+        <p class="success" id="registerSuccess"></p>
+        <div class="switch-form"><a onclick="showLogin()">Zaten hesabınız var mı? Giriş yapın</a></div>
+    </div>
+    <div id="loginForm">
+        <div class="input-group"><label>Kullanıcı Adı</label><input type="text" id="loginUsername"></div>
+        <div class="input-group"><label>Şifre</label><input type="password" id="loginPassword"></div>
+        <button onclick="login()">Giriş Yap</button>
+        <p class="error" id="loginError"></p>
+        <div class="switch-form"><a onclick="showRegister()">Hesabınız yok mu? Kayıt olun</a></div>
+    </div>
+</div>
+
+<div class="container" id="userPanel" style="display:none;">
+    <h1>Yatırımcı Paneli</h1>
+    
+    <div class="profile-photo-container">
+        <img id="profilePhoto" class="profile-photo" src="" alt="Profil Fotoğrafı">
+        <input type="file" id="photoInput" accept="image/*" onchange="uploadProfilePhoto(event)">
+        <button class="photo-upload-btn" onclick="document.getElementById('photoInput').click()">Fotoğraf Seç</button>
+    </div>
+
+    <div class="profile-card">
+        <h2>Profil Bilgileri</h2>
+        <div class="portfolio-item">
+            <div><b>Ad Soyad:</b> <span id="profileName"></span></div>
+            <div><b>Kullanıcı Adı:</b> <span id="profileUsername"></span></div>
+            <div><b>E-posta:</b> <span id="profileEmail"></span></div>
+            <div><b>Telefon:</b> <span id="profilePhone"></span></div>
+        </div>
+
+        <div class="input-group" style="margin-top: 20px;">
+            <h3>Şifre Değiştir</h3>
+            <input type="password" id="currentPassword" placeholder="Mevcut Şifre">
+            <input type="password" id="newPassword" placeholder="Yeni Şifre (En az 6 karakter)" style="margin-top: 10px;">
+            <input type="password" id="newPassword2" placeholder="Yeni Şifre Tekrar" style="margin-top: 10px;">
+            <div style="margin-top: 10px;">
+                <small style="color: #666;">
+                    📋 Şifre Gereksinimleri:<br>
+                    • En az 6 karakter uzunluğunda olmalı<br>
+                    • Güvenlik için özel karakter kullanılması önerilir
+                </small>
+            </div>
+            <button onclick="changePassword()" style="width: auto; margin-top: 15px;">Şifre Değiştir</button>
+            <p class="error" id="passwordError"></p>
+            <p class="success" id="passwordSuccess"></p>
+        </div>
+    </div>
+
+    <div class="balance-display">
+        <div><b>Toplam Bakiye:</b> <span id="userBalance">0</span> TL</div>
+        <div><b>Toplam Kar/Zarar:</b> <span id="userProfit">0</span> TL</div>
+    </div>
+
+    <div class="portfolio">
+        <h2>Yeni Yatırım Talebi</h2>
+        <div class="input-group">
+            <label>Yatırım Türü</label>
+            <select id="investmentType">
+                <option value="hisse">Hisse Senetleri</option>
+                <option value="doviz">Döviz</option>
+                <option value="altin">Altın</option>
+                <option value="kripto">Kripto Para</option>
+                <option value="fon">Yatırım Fonu</option>
+            </select>
+        </div>
+        <div class="input-group">
+            <label>Miktar (TL)</label>
+            <input type="number" id="investAmount" min="0">
+        </div>
+        <button onclick="requestInvestment()">Yatırım Talebi Gönder</button>
+        <p class="error" id="investError"></p>
+        <p class="success" id="investSuccess"></p>
+    </div>
+
+    <div class="stats-container">
+        <h2>Yatırım Dağılımı</h2>
+        <div class="chart-container">
+            <canvas id="investmentChart"></canvas>
+        </div>
+    </div>
+
+    <div class="stats-container">
+        <h2>Performans Takibi</h2>
+        <div class="password-change-section">
+            <h3>Zaman Bazlı Performans</h3>
+            <div class="input-group">
+                <label>Zaman Aralığı</label>
+                <select id="performancePeriod" onchange="updatePerformanceChart()">
+                    <option value="7">Son 7 Gün</option>
+                    <option value="30">Son 30 Gün</option>
+                    <option value="90">Son 3 Ay</option>
+                    <option value="365">Son 1 Yıl</option>
+                </select>
+            </div>
+            <div class="chart-container">
+                <canvas id="performanceChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="stats-container">
+        <h2>Başarı Rozetleri ve Seviye</h2>
+        <div class="password-change-section">
+            <h3>Mevcut Seviye: <span id="userLevel">Bronz</span></h3>
+            <div class="input-group">
+                <label>Seviye İlerlemesi</label>
+                <div style="background: #e0e0e0; border-radius: 10px; height: 20px; margin: 10px 0;">
+                    <div id="levelProgress" style="background: linear-gradient(90deg, #ffd700, #ffed4e); height: 100%; border-radius: 10px; width: 35%; transition: width 0.3s;"></div>
+                </div>
+                <small>35% - Sonraki seviyeye 650 puan kaldı</small>
+            </div>
+            <div id="badgesContainer" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-top: 20px;"></div>
+        </div>
+    </div>
+
+    <div class="stats-container">
+        <h2>AI Yatırım Önerileri</h2>
+        <div class="password-change-section">
+            <h3>Akıllı Öneriler</h3>
+            <button class="password-change-btn" onclick="generateAIRecommendations()">Yeni Öneriler Al</button>
+            <div id="aiRecommendations" style="margin-top: 20px;"></div>
+        </div>
+    </div>
+
+    <div class="stats-container">
+        <h2>Portföy Rebalancing</h2>
+        <div class="password-change-section">
+            <h3>Otomatik Dengeleme</h3>
+            <div class="input-group">
+                <label>Hedef Portföy Dağılımı</label>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin: 10px 0;">
+                    <div>
+                        <label>Hisse Senetleri (%)</label>
+                        <input type="number" id="targetStocks" value="40" min="0" max="100">
+                    </div>
+                    <div>
+                        <label>Döviz (%)</label>
+                        <input type="number" id="targetForex" value="20" min="0" max="100">
+                    </div>
+                    <div>
+                        <label>Altın (%)</label>
+                        <input type="number" id="targetGold" value="20" min="0" max="100">
+                    </div>
+                    <div>
+                        <label>Kripto (%)</label>
+                        <input type="number" id="targetCrypto" value="10" min="0" max="100">
+                    </div>
+                    <div>
+                        <label>Fonlar (%)</label>
+                        <input type="number" id="targetFunds" value="10" min="0" max="100">
+                    </div>
+                </div>
+            </div>
+            <button class="password-change-btn" onclick="rebalancePortfolio()">Portföyü Dengele</button>
+            <div id="rebalancingResult" style="margin-top: 20px;"></div>
+        </div>
+    </div>
+
+    <h2>İşlem Geçmişi</h2>
+    <div id="userTransactions"></div>
+    <button class="logout-btn" onclick="logout()">Çıkış Yap</button>
+</div>
+
+<div class="container" id="adminPanel" style="display:none;">
+    <h1>Admin Paneli</h1>
+    <div style="text-align: center; margin-bottom: 20px;">
+        <button class="tab-btn active" onclick="showAdminTab('dashboard', this)">Dashboard</button>
+        <button class="tab-btn" onclick="showAdminTab('pending', this)">Bekleyen İşlemler</button>
+        <button class="tab-btn" onclick="showAdminTab('approved', this)">Tüm İşlemler</button>
+        <button class="tab-btn" onclick="showAdminTab('users', this)">Yatırımcıları Yönet</button>
+        <button class="tab-btn" onclick="showAdminTab('leaderboard', this)">Leaderboard</button>
+        <button class="tab-btn" onclick="showAdminTab('calculator', this)">Hesaplayıcılar</button>
+        <button class="tab-btn" onclick="showAdminTab('rates', this)">Kurlar</button>
+        <button class="tab-btn" onclick="showAdminTab('portfolio', this)">Portföy</button>
+        <button class="tab-btn" onclick="showAdminTab('predictions', this)">Tahminler</button>
+        <button class="tab-btn" onclick="showAdminTab('autoinvest', this)">Otomatik Planlar</button>
+        <button class="tab-btn" onclick="showAdminTab('health', this)">Sistem Sağlığı</button>
+        <button class="tab-btn" onclick="showAdminTab('api', this)">API Yönetimi</button>
+        <button class="tab-btn" onclick="showAdminTab('reports', this)">Performans Raporları</button>
+        <button class="tab-btn" onclick="showAdminTab('risk', this)">Risk Analizi</button>
+        <button class="tab-btn" onclick="showAdminTab('documents', this)">Doküman Yönetimi</button>
+        <button class="tab-btn" onclick="showAdminTab('news', this)">Haber Akışı</button>
+        <button class="tab-btn" onclick="showAdminTab('settings', this)">Admin Ayarları</button>
+    </div>
+
+    <div id="dashboardTab">
+        <h2>Dashboard - Sistem İstatistikleri</h2>
+        <div class="password-change-section">
+            <h3>Genel İstatistikler</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin: 20px 0;">
+                <div class="portfolio-item">
+                    <h4>Toplam Kullanıcı</h4>
+                    <div style="font-size: 2em; color: #1e3c72;" id="totalUsers">0</div>
+                </div>
+                <div class="portfolio-item">
+                    <h4>Toplam Bakiye</h4>
+                    <div style="font-size: 2em; color: #28a745;" id="totalBalance">0 TL</div>
+                </div>
+                <div class="portfolio-item">
+                    <h4>Bekleyen İşlemler</h4>
+                    <div style="font-size: 2em; color: #ffc107;" id="pendingTransactions">0</div>
+                </div>
+                <div class="portfolio-item">
+                    <h4>Onaylanan İşlemler</h4>
+                    <div style="font-size: 2em; color: #28a745;" id="approvedTransactions">0</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="password-change-section">
+            <h3>Finansal Özet</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin: 20px 0;">
+                <div class="portfolio-item">
+                    <h4>Alınan Toplam Yatırım</h4>
+                    <div style="font-size: 2em; color: #17a2b8;" id="totalInvestmentsReceived">0 TL</div>
+                    <small>Onaylanan tüm yatırımların toplamı</small>
+                </div>
+                <div class="portfolio-item">
+                    <h4>Ödenen Toplam Kar</h4>
+                    <div style="font-size: 2em; color: #28a745;" id="totalProfitsPaid">0 TL</div>
+                    <small>Kullanıcılara ödenen toplam kar</small>
+                </div>
+                <div class="portfolio-item">
+                    <h4>Net Gelir</h4>
+                    <div style="font-size: 2em; color: #dc3545;" id="netIncome">0 TL</div>
+                    <small>Alınan yatırım - Ödenen kar</small>
+                </div>
+                <div class="portfolio-item">
+                    <h4>Ortalama Yatırım</h4>
+                    <div style="font-size: 2em; color: #6f42c1;" id="averageInvestment">0 TL</div>
+                    <small>Onaylanan işlem başına ortalama</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="password-change-section">
+            <h3>Son Aktiviteler</h3>
+            <div id="recentActivities"></div>
+        </div>
+        
+        <div class="password-change-section">
+            <h3>Sistem Performansı</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+                <div class="portfolio-item">
+                    <h4>Ortalama Yatırım</h4>
+                    <div style="font-size: 1.5em;" id="avgInvestment">0 TL</div>
+                </div>
+                <div class="portfolio-item">
+                    <h4>En Aktif Kullanıcı</h4>
+                    <div style="font-size: 1.2em;" id="mostActiveUser">-</div>
+                </div>
+                <div class="portfolio-item">
+                    <h4>Toplam Kar</h4>
+                    <div style="font-size: 1.5em; color: #28a745;" id="totalProfit">0 TL</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="pendingTab" style="display:none;">
+        <h2>Bekleyen Yatırım Talepleri</h2>
+        <div id="pendingList"></div>
+    </div>
+
+    <div id="approvedTab" style="display:none;">
+        <h2>Tüm İşlemler</h2>
+        <div id="approvedList"></div>
+    </div>
+
+    <div id="usersTab" style="display:none;">
+        <h2>Yatırımcı Yönetimi</h2>
+        <table class="admin-users-table" id="adminUsersTable">
+            <thead>
+                <tr>
+                    <th>Kullanıcı Adı</th>
+                    <th>Ad Soyad</th>
+                    <th>Bakiye (TL)</th>
+                    <th>Kar/Zarar (TL)</th>
+                    <th>İşlemler</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+        <p class="success" id="userEditSuccess"></p>
+    </div>
+
+    <div id="leaderboardTab" style="display:none;">
+        <h2>Leaderboard - En Başarılı Yatırımcılar</h2>
+        <div class="password-change-section">
+            <h3>Sıralama Kriterleri</h3>
+            <div class="input-group">
+                <label>Sıralama Türü</label>
+                <select id="leaderboardType" onchange="updateLeaderboard()">
+                    <option value="profit">Toplam Kar</option>
+                    <option value="balance">Toplam Bakiye</option>
+                    <option value="growth">Büyüme Oranı</option>
+                    <option value="transactions">İşlem Sayısı</option>
+                </select>
+            </div>
+        </div>
+        <div id="leaderboardList"></div>
+    </div>
+
+    <div id="calculatorTab" style="display:none;">
+        <h2>Finansal Hesaplayıcılar</h2>
+        <div class="password-change-section">
+            <h3>Bileşik Faiz Hesaplayıcı</h3>
+            <div class="input-group">
+                <label>Ana Para (TL)</label>
+                <input type="number" id="principal" placeholder="10000" min="0">
+            </div>
+            <div class="input-group">
+                <label>Faiz Oranı (% yıllık)</label>
+                <input type="number" id="interestRate" placeholder="12" min="0" max="100" step="0.01">
+            </div>
+            <div class="input-group">
+                <label>Vade (Yıl)</label>
+                <input type="number" id="years" placeholder="5" min="0" step="0.1">
+            </div>
+            <div class="input-group">
+                <label>Dönemsel Katkı (TL/ay)</label>
+                <input type="number" id="monthlyContribution" placeholder="1000" min="0">
+            </div>
+            <button class="password-change-btn" onclick="calculateCompoundInterest()">Hesapla</button>
+            <div id="interestResult" style="margin-top: 20px;"></div>
+        </div>
+        
+        <div class="password-change-section">
+            <h3>Yatırım Getiri Hesaplayıcı</h3>
+            <div class="input-group">
+                <label>Başlangıç Yatırımı (TL)</label>
+                <input type="number" id="initialInvestment" placeholder="5000" min="0">
+            </div>
+            <div class="input-group">
+                <label>Mevcut Değer (TL)</label>
+                <input type="number" id="currentValue" placeholder="7500" min="0">
+            </div>
+            <div class="input-group">
+                <label>Yatırım Süresi (Gün)</label>
+                <input type="number" id="investmentDays" placeholder="365" min="1">
+            </div>
+            <button class="password-change-btn" onclick="calculateROI()">Hesapla</button>
+            <div id="roiResult" style="margin-top: 20px;"></div>
+        </div>
+    </div>
+
+    <div id="ratesTab" style="display:none;">
+        <h2>Döviz ve Altın Kurları</h2>
+        <div class="password-change-section">
+            <h3>Güncel Kurlar</h3>
+            <button class="password-change-btn" onclick="updateRates()">Kurları Güncelle</button>
+            <div id="ratesDisplay" style="margin-top: 20px;"></div>
+        </div>
+        
+        <div class="password-change-section">
+            <h3>Kur Dönüştürücü</h3>
+            <div class="input-group">
+                <label>Miktar</label>
+                <input type="number" id="convertAmount" placeholder="1000" min="0">
+            </div>
+            <div class="input-group">
+                <label>Kaynak Para Birimi</label>
+                <select id="fromCurrency">
+                    <option value="TRY">Türk Lirası (TRY)</option>
+                    <option value="USD">Amerikan Doları (USD)</option>
+                    <option value="EUR">Euro (EUR)</option>
+                    <option value="GBP">İngiliz Sterlini (GBP)</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label>Hedef Para Birimi</label>
+                <select id="toCurrency">
+                    <option value="USD">Amerikan Doları (USD)</option>
+                    <option value="EUR">Euro (EUR)</option>
+                    <option value="GBP">İngiliz Sterlini (GBP)</option>
+                    <option value="TRY">Türk Lirası (TRY)</option>
+                </select>
+            </div>
+            <button class="password-change-btn" onclick="convertCurrency()">Dönüştür</button>
+            <div id="conversionResult" style="margin-top: 20px;"></div>
+        </div>
+    </div>
+
+    <div id="portfolioTab" style="display:none;">
+        <h2>Portföy Optimizasyonu</h2>
+        <div class="password-change-section">
+            <h3>Hedef Portföy Dağılımı</h3>
+            <div class="input-group">
+                <label>Hisse Senetleri (%)</label>
+                <input type="number" id="targetStocks" placeholder="40" min="0" max="100">
+            </div>
+            <div class="input-group">
+                <label>Döviz (%)</label>
+                <input type="number" id="targetForex" placeholder="20" min="0" max="100">
+            </div>
+            <div class="input-group">
+                <label>Altın (%)</label>
+                <input type="number" id="targetGold" placeholder="20" min="0" max="100">
+            </div>
+            <div class="input-group">
+                <label>Kripto Para (%)</label>
+                <input type="number" id="targetCrypto" placeholder="10" min="0" max="100">
+            </div>
+            <div class="input-group">
+                <label>Yatırım Fonu (%)</label>
+                <input type="number" id="targetFunds" placeholder="10" min="0" max="100">
+            </div>
+            <button class="password-change-btn" onclick="optimizePortfolio()">Portföyü Optimize Et</button>
+            <div id="portfolioOptimization" style="margin-top: 20px;"></div>
+        </div>
+    </div>
+
+    <div id="predictionsTab" style="display:none;">
+        <h2>AI Destekli Yatırım Tahminleri</h2>
+        <div class="password-change-section">
+            <h3>Trend Analizi</h3>
+            <div class="input-group">
+                <label>Yatırım Türü</label>
+                <select id="predictionType">
+                    <option value="hisse">Hisse Senetleri</option>
+                    <option value="doviz">Döviz</option>
+                    <option value="altin">Altın</option>
+                    <option value="kripto">Kripto Para</option>
+                </select>
+            </div>
+            <button class="password-change-btn" onclick="generatePrediction()">Tahmin Oluştur</button>
+            <div id="predictionResult" style="margin-top: 20px;"></div>
+        </div>
+    </div>
+
+    <div id="autoinvestTab" style="display:none;">
+        <h2>Otomatik Yatırım Planları</h2>
+        <div class="password-change-section">
+            <h3>Yeni Otomatik Plan</h3>
+            <div class="input-group">
+                <label>Plan Adı</label>
+                <input type="text" id="planName" placeholder="Aylık Altın Yatırımı">
+            </div>
+            <div class="input-group">
+                <label>Yatırım Türü</label>
+                <select id="autoInvestmentType">
+                    <option value="hisse">Hisse Senetleri</option>
+                    <option value="doviz">Döviz</option>
+                    <option value="altin">Altın</option>
+                    <option value="kripto">Kripto Para</option>
+                    <option value="fon">Yatırım Fonu</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label>Miktar (TL)</label>
+                <input type="number" id="autoAmount" placeholder="1000" min="0">
+            </div>
+            <div class="input-group">
+                <label>Frekans</label>
+                <select id="autoFrequency">
+                    <option value="weekly">Haftalık</option>
+                    <option value="monthly">Aylık</option>
+                    <option value="quarterly">3 Aylık</option>
+                </select>
+            </div>
+            <button class="password-change-btn" onclick="createAutoPlan()">Plan Oluştur</button>
+        </div>
+        
+        <div class="password-change-section">
+            <h3>Aktif Planlar</h3>
+            <div id="activePlans"></div>
+        </div>
+    </div>
+
+    <div id="healthTab" style="display:none;">
+        <h2>Sistem Sağlığı</h2>
+        <div class="password-change-section">
+            <h3>Performans Metrikleri</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+                <div class="portfolio-item">
+                    <h4>Sayfa Yükleme Süresi</h4>
+                    <div id="pageLoadTime">-</div>
+                </div>
+                <div class="portfolio-item">
+                    <h4>LocalStorage Kullanımı</h4>
+                    <div id="storageUsage">-</div>
+                </div>
+                <div class="portfolio-item">
+                    <h4>Aktif Kullanıcılar</h4>
+                    <div id="activeUsers">-</div>
+                </div>
+                <div class="portfolio-item">
+                    <h4>Sistem Durumu</h4>
+                    <div id="systemStatus" style="color: #28a745;">✅ Sağlıklı</div>
+                </div>
+            </div>
+            <button class="password-change-btn" onclick="refreshSystemHealth()">Yenile</button>
+        </div>
+    </div>
+
+    <div id="apiTab" style="display:none;">
+        <h2>API Yönetimi</h2>
+        <div class="password-change-section">
+            <h3>Dış API Entegrasyonları</h3>
+            <div class="input-group">
+                <label>Döviz API Anahtarı</label>
+                <input type="text" id="currencyApiKey" placeholder="API anahtarı">
+            </div>
+            <div class="input-group">
+                <label>Borsa API Anahtarı</label>
+                <input type="text" id="stockApiKey" placeholder="API anahtarı">
+            </div>
+            <div class="input-group">
+                <label>Altın API Anahtarı</label>
+                <input type="text" id="goldApiKey" placeholder="API anahtarı">
+            </div>
+            <button class="password-change-btn" onclick="saveApiKeys()">API Anahtarlarını Kaydet</button>
+            <button class="password-change-btn" onclick="testApis()">API'leri Test Et</button>
+            <div id="apiTestResults" style="margin-top: 20px;"></div>
+        </div>
+    </div>
+
+    <div id="reportsTab" style="display:none;">
+        <h2>Performans Raporları</h2>
+        <div class="password-change-section">
+            <h3>Rapor Türü Seçin</h3>
+            <div class="input-group">
+                <label>Rapor Periyodu</label>
+                <select id="reportPeriod" onchange="generatePerformanceReport()">
+                    <option value="daily">Günlük Rapor</option>
+                    <option value="weekly">Haftalık Rapor</option>
+                    <option value="monthly">Aylık Rapor</option>
+                    <option value="yearly">Yıllık Rapor</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label>Başlangıç Tarihi</label>
+                <input type="date" id="reportStartDate">
+            </div>
+            <div class="input-group">
+                <label>Bitiş Tarihi</label>
+                <input type="date" id="reportEndDate">
+            </div>
+            <button class="password-change-btn" onclick="generatePerformanceReport()">Rapor Oluştur</button>
+            <button class="password-change-btn" onclick="exportReport()" style="background: #28a745;">PDF İndir</button>
+        </div>
+        
+        <div class="password-change-section">
+            <h3>Performans Özeti</h3>
+            <div id="performanceSummary"></div>
+        </div>
+        
+        <div class="password-change-section">
+            <h3>Detaylı Grafikler</h3>
+            <div class="chart-container">
+                <canvas id="performanceChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div id="riskTab" style="display:none;">
+        <h2>Risk Analizi ve Volatilite</h2>
+        <div class="password-change-section">
+            <h3>Portföy Risk Metrikleri</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin: 20px 0;">
+                <div class="portfolio-item">
+                    <h4>Volatilite (Günlük)</h4>
+                    <div style="font-size: 2em; color: #dc3545;" id="dailyVolatility">-</div>
+                </div>
+                <div class="portfolio-item">
+                    <h4>Sharpe Oranı</h4>
+                    <div style="font-size: 2em; color: #28a745;" id="sharpeRatio">-</div>
+                </div>
+                <div class="portfolio-item">
+                    <h4>Maksimum Düşüş</h4>
+                    <div style="font-size: 2em; color: #ffc107;" id="maxDrawdown">-</div>
+                </div>
+                <div class="portfolio-item">
+                    <h4>VaR (95%)</h4>
+                    <div style="font-size: 2em; color: #6f42c1;" id="var95">-</div>
+                </div>
+            </div>
+            <button class="password-change-btn" onclick="calculateRiskMetrics()">Risk Hesapla</button>
+        </div>
+        
+        <div class="password-change-section">
+            <h3>Risk Dağılımı</h3>
+            <div class="chart-container">
+                <canvas id="riskChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div id="documentsTab" style="display:none;">
+        <h2>Doküman Yönetimi</h2>
+        <div class="password-change-section">
+            <h3>Yeni Doküman Yükle</h3>
+            <div class="input-group">
+                <label>Doküman Türü</label>
+                <select id="documentType">
+                    <option value="contract">Sözleşme</option>
+                    <option value="report">Rapor</option>
+                    <option value="certificate">Sertifika</option>
+                    <option value="policy">Politika</option>
+                    <option value="other">Diğer</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label>Doküman Başlığı</label>
+                <input type="text" id="documentTitle" placeholder="Doküman başlığını girin">
+            </div>
+            <div class="input-group">
+                <label>Dosya Seç</label>
+                <input type="file" id="documentFile" accept=".pdf,.doc,.docx,.xls,.xlsx,.txt">
+            </div>
+            <button class="password-change-btn" onclick="uploadDocument()">Doküman Yükle</button>
+        </div>
+        
+        <div class="password-change-section">
+            <h3>Mevcut Dokümanlar</h3>
+            <div id="documentsList"></div>
+        </div>
+    </div>
+
+    <div id="newsTab" style="display:none;">
+        <h2>Haber ve Analiz Akışı</h2>
+        <div class="password-change-section">
+            <h3>Haber Kaynakları</h3>
+            <div class="input-group">
+                <label>Haber Kategorisi</label>
+                <select id="newsCategory" onchange="loadNews()">
+                    <option value="all">Tüm Haberler</option>
+                    <option value="market">Piyasa Haberleri</option>
+                    <option value="crypto">Kripto Para</option>
+                    <option value="forex">Döviz</option>
+                    <option value="stocks">Hisse Senetleri</option>
+                    <option value="economy">Ekonomi</option>
+                </select>
+            </div>
+            <button class="password-change-btn" onclick="loadNews()">Haberleri Yükle</button>
+        </div>
+        
+        <div class="password-change-section">
+            <h3>Güncel Haberler</h3>
+            <div id="newsFeed"></div>
+        </div>
+    </div>
+
+    <div id="settingsTab" style="display:none;">
+        <h2>Admin Ayarları</h2>
+        <div class="password-change-section">
+            <h3>Admin Şifre Değiştir</h3>
+            <div class="input-group">
+                <label>Mevcut Şifre</label>
+                <input type="password" id="adminCurrentPassword" placeholder="Mevcut admin şifrenizi girin">
+            </div>
+            <div class="input-group">
+                <label>Yeni Şifre</label>
+                <input type="password" id="adminNewPassword" placeholder="Yeni admin şifrenizi girin">
+            </div>
+            <div class="input-group">
+                <label>Yeni Şifre Tekrar</label>
+                <input type="password" id="adminNewPassword2" placeholder="Yeni admin şifrenizi tekrar girin">
+            </div>
+            <button class="password-change-btn" onclick="changeAdminPassword()">Admin Şifre Değiştir</button>
+            <p class="error" id="adminPasswordError"></p>
+            <p class="success" id="adminPasswordSuccess"></p>
+        </div>
+    </div>
+
+    <button class="logout-btn" onclick="logout()">Çıkış Yap</button>
+</div>
+
+<script>
+// Admin bilgileri
+const admin = {
+    username: 'admin',
+    password: '1234',
+    fullName: 'Admin',
+    email: 'admin@example.com',
+    phone: '-'
+};
+
+// İlk kurulum
+if (!localStorage.getItem('users')) {
+    localStorage.setItem('users', JSON.stringify([admin]));
+}
+if (!localStorage.getItem('transactions')) {
+    localStorage.setItem('transactions', JSON.stringify([]));
+}
+if (!localStorage.getItem('auditLog')) {
+    localStorage.setItem('auditLog', JSON.stringify([]));
+}
+
+let currentUser = null;
+
+// Form gösterme fonksiyonları
+function showLogin() {
+    document.getElementById('formTitle').textContent = 'Giriş Yap';
+    document.getElementById('registerForm').style.display = 'none';
+    document.getElementById('loginForm').style.display = 'block';
+}
+
+function showRegister() {
+    document.getElementById('formTitle').textContent = 'Kayıt Ol';
+    document.getElementById('registerForm').style.display = 'block';
+    document.getElementById('loginForm').style.display = 'none';
+}
+
+// Profil fotoğrafı yükleme
+function uploadProfilePhoto(event) {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('profilePhoto').src = e.target.result;
+            let users = JSON.parse(localStorage.getItem('users'));
+            let user = users.find(u => u.username === currentUser.username);
+            if (user) {
+                user.photo = e.target.result;
+                localStorage.setItem('users', JSON.stringify(users));
+            }
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+// Kayıt işlemi
+function register() {
+    const fullName = document.getElementById('regFullName').value.trim();
+    const username = document.getElementById('regUsername').value.trim();
+    const email = document.getElementById('regEmail').value.trim();
+    const phone = document.getElementById('regPhone').value.trim();
+    const password = document.getElementById('regPassword').value;
+    const password2 = document.getElementById('regPassword2').value;
+    const error = document.getElementById('registerError');
+    const success = document.getElementById('registerSuccess');
+
+    error.style.display = 'none';
+    success.style.display = 'none';
+
+    if (!fullName || !username || !email || !phone || !password || !password2) {
+        error.textContent = 'Tüm alanları doldurun!';
+        error.style.display = 'block';
+        return;
+    }
+
+    if (password !== password2) {
+        error.textContent = 'Şifreler eşleşmiyor!';
+        error.style.display = 'block';
+        return;
+    }
+
+    let users = JSON.parse(localStorage.getItem('users'));
+    if (users.some(u => u.username === username)) {
+        error.textContent = 'Bu kullanıcı adı zaten kullanımda!';
+        error.style.display = 'block';
+        return;
+    }
+
+    users.push({
+        fullName,
+        username,
+        email,
+        phone,
+        password,
+        balance: 0,
+        profit: 0
+    });
+
+    localStorage.setItem('users', JSON.stringify(users));
+    success.textContent = 'Kayıt başarılı! Giriş yapabilirsiniz.';
+    success.style.display = 'block';
+    
+    setTimeout(showLogin, 1500);
+}
+
+// Giriş işlemi
+function login() {
+    const username = document.getElementById('loginUsername').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    const error = document.getElementById('loginError');
+
+    let users = JSON.parse(localStorage.getItem('users'));
+    let user = users.find(u => u.username === username && u.password === password);
+
+    if (user) {
+        currentUser = user;
+        if (username === 'admin') {
+            showAdminPanel();
+        } else {
+            showUserPanel();
+        }
+        error.style.display = 'none';
+    } else {
+        error.textContent = 'Hatalı kullanıcı adı veya şifre!';
+        error.style.display = 'block';
+    }
+}
+
+// Şifre güçlülüğü kontrol fonksiyonu
+function checkPasswordStrength(password) {
+    let score = 0;
+    let feedback = [];
+    
+    if (password.length >= 6) score += 1;
+    else feedback.push("En az 6 karakter olmalı");
+    
+    if (password.length >= 8) score += 1;
+    
+    if (/[A-Z]/.test(password)) score += 1;
+    else feedback.push("Büyük harf ekleyin");
+    
+    if (/[a-z]/.test(password)) score += 1;
+    else feedback.push("Küçük harf ekleyin");
+    
+    if (/[0-9]/.test(password)) score += 1;
+    else feedback.push("Rakam ekleyin");
+    
+    if (/[^A-Za-z0-9]/.test(password)) score += 1;
+    else feedback.push("Özel karakter ekleyin (!@#$%^&*)");
+    
+    return { score, feedback };
+}
+
+// Geliştirilmiş şifre değiştirme fonksiyonu
+function changePassword() {
+    const currentPassword = document.getElementById('currentPassword').value;
+    const newPassword = document.getElementById('newPassword').value;
+    const newPassword2 = document.getElementById('newPassword2').value;
+    const error = document.getElementById('passwordError');
+    const success = document.getElementById('passwordSuccess');
+
+    error.style.display = 'none';
+    success.style.display = 'none';
+
+    // Boş alan kontrolü
+    if (!currentPassword || !newPassword || !newPassword2) {
+        error.textContent = '❌ Tüm alanları doldurun!';
+        error.style.display = 'block';
+        return;
+    }
+
+    // Minimum uzunluk kontrolü
+    if (newPassword.length < 6) {
+        error.textContent = '❌ Yeni şifre en az 6 karakter olmalıdır!';
+        error.style.display = 'block';
+        return;
+    }
+
+    // Şifre eşleşme kontrolü
+    if (newPassword !== newPassword2) {
+        error.textContent = '❌ Yeni şifreler eşleşmiyor!';
+        error.style.display = 'block';
+        return;
+    }
+
+    // Aynı şifre kontrolü
+    if (currentPassword === newPassword) {
+        error.textContent = '❌ Yeni şifre mevcut şifre ile aynı olamaz!';
+        error.style.display = 'block';
+        return;
+    }
+
+    let users = JSON.parse(localStorage.getItem('users'));
+    let user = users.find(u => u.username === currentUser.username);
+
+    // Mevcut şifre kontrolü
+    if (user.password !== currentPassword) {
+        error.textContent = '❌ Mevcut şifre hatalı!';
+        error.style.display = 'block';
+        return;
+    }
+
+    // Şifre güçlülük kontrolü
+    const strength = checkPasswordStrength(newPassword);
+    
+    // Şifre güncelleme
+    user.password = newPassword;
+    user.lastPasswordChange = new Date().toLocaleString();
+    localStorage.setItem('users', JSON.stringify(users));
+    
+    // Başarı mesajı
+    let strengthText = '';
+    if (strength.score >= 5) strengthText = '🔒 Çok Güçlü';
+    else if (strength.score >= 4) strengthText = '🛡️ Güçlü';
+    else if (strength.score >= 3) strengthText = '⚠️ Orta';
+    else strengthText = '🔓 Zayıf';
+    
+    success.textContent = `✅ Şifreniz başarıyla değiştirildi! Güçlülük: ${strengthText}`;
+    success.style.display = 'block';
+    
+    // Formu temizle
+    document.getElementById('currentPassword').value = '';
+    document.getElementById('newPassword').value = '';
+    document.getElementById('newPassword2').value = '';
+    
+    // Otomatik gizleme
+    setTimeout(() => {
+        success.style.display = 'none';
+    }, 5000);
+}
+
+// Admin şifre değiştirme
+function changeAdminPassword() {
+    const currentPassword = document.getElementById('adminCurrentPassword').value;
+    const newPassword = document.getElementById('adminNewPassword').value;
+    const newPassword2 = document.getElementById('adminNewPassword2').value;
+    const error = document.getElementById('adminPasswordError');
+    const success = document.getElementById('adminPasswordSuccess');
+
+    error.style.display = 'none';
+    success.style.display = 'none';
+
+    if (!currentPassword || !newPassword || !newPassword2) {
+        error.textContent = '❌ Tüm alanları doldurun!';
+        error.style.display = 'block';
+        return;
+    }
+
+    if (newPassword.length < 6) {
+        error.textContent = '❌ Yeni şifre en az 6 karakter olmalıdır!';
+        error.style.display = 'block';
+        return;
+    }
+
+    if (newPassword !== newPassword2) {
+        error.textContent = '❌ Yeni şifreler eşleşmiyor!';
+        error.style.display = 'block';
+        return;
+    }
+
+    if (currentPassword === newPassword) {
+        error.textContent = '❌ Yeni şifre mevcut şifre ile aynı olamaz!';
+        error.style.display = 'block';
+        return;
+    }
+
+    let users = JSON.parse(localStorage.getItem('users'));
+    let adminIndex = users.findIndex(u => u.username === 'admin');
+    if (adminIndex === -1) {
+        error.textContent = '❌ Admin kullanıcısı bulunamadı!';
+        error.style.display = 'block';
+        return;
+    }
+
+    if (users[adminIndex].password !== currentPassword) {
+        error.textContent = '❌ Mevcut admin şifresi hatalı!';
+        error.style.display = 'block';
+        return;
+    }
+
+    users[adminIndex].password = newPassword;
+    users[adminIndex].lastPasswordChange = new Date().toLocaleString();
+    localStorage.setItem('users', JSON.stringify(users));
+
+    if (currentUser && currentUser.username === 'admin') {
+        currentUser.password = newPassword;
+    }
+
+    // Audit log'a yaz
+    try {
+        const logs = JSON.parse(localStorage.getItem('auditLog')) || [];
+        logs.push({
+            id: Date.now(),
+            timestamp: new Date().toISOString(),
+            username: 'admin',
+            action: 'ADMIN_PASSWORD_CHANGE',
+            details: 'Admin şifresi değiştirildi',
+            ip: '127.0.0.1'
+        });
+        localStorage.setItem('auditLog', JSON.stringify(logs));
+    } catch (_) {}
+
+    success.textContent = '✅ Admin şifresi başarıyla değiştirildi!';
+    success.style.display = 'block';
+
+    document.getElementById('adminCurrentPassword').value = '';
+    document.getElementById('adminNewPassword').value = '';
+    document.getElementById('adminNewPassword2').value = '';
+}
+
+// Şifre alanında gerçek zamanlı güçlülük gösterimi
+document.addEventListener('DOMContentLoaded', function() {
+    const newPasswordInput = document.getElementById('newPassword');
+    if (newPasswordInput) {
+        newPasswordInput.addEventListener('input', function() {
+            const password = this.value;
+            if (password.length > 0) {
+                const strength = checkPasswordStrength(password);
+                let strengthColor = '';
+                let strengthText = '';
+                
+                if (strength.score >= 5) {
+                    strengthColor = '#28a745';
+                    strengthText = '🔒 Çok Güçlü';
+                } else if (strength.score >= 4) {
+                    strengthColor = '#17a2b8';
+                    strengthText = '🛡️ Güçlü';
+                } else if (strength.score >= 3) {
+                    strengthColor = '#ffc107';
+                    strengthText = '⚠️ Orta';
+                } else {
+                    strengthColor = '#dc3545';
+                    strengthText = '🔓 Zayıf';
+                }
+                
+                this.style.borderColor = strengthColor;
+                this.title = `${strengthText} - ${strength.feedback.join(', ')}`;
+            } else {
+                this.style.borderColor = '#ddd';
+                this.title = '';
+            }
+        });
+    }
+});
+
+// Kullanıcı paneli
+function showUserPanel() {
+    document.getElementById('authContainer').style.display = 'none';
+    document.getElementById('userPanel').style.display = 'block';
+    document.getElementById('adminPanel').style.display = 'none';
+
+    document.getElementById('profileName').textContent = currentUser.fullName;
+    document.getElementById('profileUsername').textContent = currentUser.username;
+    document.getElementById('profileEmail').textContent = currentUser.email;
+    document.getElementById('profilePhone').textContent = currentUser.phone;
+    
+    if (currentUser.photo) {
+        document.getElementById('profilePhoto').src = currentUser.photo;
+    }
+    
+    updateUserBalance();
+    loadUserTransactions();
+    updateInvestmentChart();
+    updatePerformanceChart();
+    loadUserBadges();
+    generateAIRecommendations();
+}
+
+// Admin paneli
+function showAdminPanel() {
+    document.getElementById('authContainer').style.display = 'none';
+    document.getElementById('userPanel').style.display = 'none';
+    document.getElementById('adminPanel').style.display = 'block';
+    loadPendingTransactions();
+}
+
+// Yatırım talebi
+function requestInvestment() {
+    const amount = parseInt(document.getElementById('investAmount').value);
+    const investmentType = document.getElementById('investmentType').value;
+    const error = document.getElementById('investError');
+    const success = document.getElementById('investSuccess');
+
+    error.style.display = 'none';
+    success.style.display = 'none';
+
+    if (!amount || amount <= 0) {
+        error.textContent = 'Geçerli bir miktar girin!';
+        error.style.display = 'block';
+        return;
+    }
+
+    let transactions = JSON.parse(localStorage.getItem('transactions'));
+    transactions.push({
+        id: Date.now(),
+        username: currentUser.username,
+        fullName: currentUser.fullName,
+        amount: amount,
+        investmentType: investmentType,
+        status: 'pending',
+        date: new Date().toLocaleString()
+    });
+
+    localStorage.setItem('transactions', JSON.stringify(transactions));
+    success.textContent = 'Yatırım talebiniz alındı!';
+    success.style.display = 'block';
+    
+    document.getElementById('investAmount').value = '';
+    loadUserTransactions();
+}
+
+// Kullanıcı işlemleri
+function loadUserTransactions() {
+    let transactions = JSON.parse(localStorage.getItem('transactions'));
+    let userTransactions = transactions.filter(t => t.username === currentUser.username);
+    
+    let html = userTransactions.map(t => `
+        <div class="transaction-item">
+            <div>
+                <strong>${t.investmentType.toUpperCase()}</strong> - ${t.amount} TL
+                <br>
+                <small>${t.date}</small>
+            </div>
+            <div class="status-${t.status}">
+                ${t.status === 'pending' ? 'Beklemede' : 
+                  t.status === 'approved' ? 'Onaylandı' : 'Reddedildi'}
+            </div>
+        </div>
+    `).join('');
+
+    document.getElementById('userTransactions').innerHTML = html || 'Henüz işlem yok.';
+}
+
+// Admin işlemleri
+function loadPendingTransactions() {
+    let transactions = JSON.parse(localStorage.getItem('transactions'));
+    let pendingTransactions = transactions.filter(t => t.status === 'pending');
+    
+    let html = pendingTransactions.map(t => `
+        <div class="transaction-item">
+            <div>
+                <strong>${t.fullName}</strong> (${t.username})
+                <br>
+                ${t.investmentType.toUpperCase()} - ${t.amount} TL
+                <br>
+                <small>${t.date}</small>
+            </div>
+            <div>
+                <button class="admin-action-btn" onclick="updateTransactionStatus(${t.id}, 'approved')">Onayla</button>
+                <button class="admin-action-btn" style="background: #dc3545" onclick="updateTransactionStatus(${t.id}, 'rejected')">Reddet</button>
+            </div>
+        </div>
+    `).join('');
+
+    document.getElementById('pendingList').innerHTML = html || 'Bekleyen işlem yok.';
+}
+
+function loadApprovedTransactions() {
+    let transactions = JSON.parse(localStorage.getItem('transactions'));
+    let completedTransactions = transactions.filter(t => t.status !== 'pending');
+    
+    let html = completedTransactions.map(t => `
+        <div class="transaction-item">
+            <div>
+                <strong>${t.fullName}</strong> (${t.username})
+                <br>
+                ${t.investmentType.toUpperCase()} - ${t.amount} TL
+                <br>
+                <small>${t.date}</small>
+            </div>
+            <div class="status-${t.status}">
+                ${t.status === 'approved' ? 'Onaylandı' : 'Reddedildi'}
+            </div>
+        </div>
+    `).join('');
+
+    document.getElementById('approvedList').innerHTML = html || 'İşlem yok.';
+}
+
+function updateTransactionStatus(id, status) {
+    let transactions = JSON.parse(localStorage.getItem('transactions'));
+    let transaction = transactions.find(t => t.id === id);
+    
+    if (transaction) {
+        transaction.status = status;
+        
+        if (status === 'approved') {
+            let users = JSON.parse(localStorage.getItem('users'));
+            let user = users.find(u => u.username === transaction.username);
+            if (user) {
+                user.balance = (user.balance || 0) + transaction.amount;
+                user.profit = (user.profit || 0) + Math.round(transaction.amount * 0.1);
+                localStorage.setItem('users', JSON.stringify(users));
+            }
+        }
+        
+        localStorage.setItem('transactions', JSON.stringify(transactions));
+        loadPendingTransactions();
+        loadApprovedTransactions();
+    }
+}
+
+// Yatırımcı yönetimi
+function loadAdminUsers() {
+    let users = JSON.parse(localStorage.getItem('users'));
+    let tbody = document.querySelector('#adminUsersTable tbody');
+    
+    tbody.innerHTML = users
+        .filter(u => u.username !== 'admin')
+        .map(u => `
+            <tr>
+                <td>${u.username}</td>
+                <td>${u.fullName}</td>
+                <td>
+                    <input type="number" value="${u.balance || 0}" id="balance_${u.username}">
+                </td>
+                <td>
+                    <input type="number" value="${u.profit || 0}" id="profit_${u.username}">
+                </td>
+                <td>
+                    <button class="admin-action-btn" onclick="updateUserFinancials('${u.username}')">
+                        Güncelle
+                    </button>
+                    <button class="admin-action-btn delete-btn" onclick="deleteUser('${u.username}')">
+                        Sil
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+}
+
+function updateUserFinancials(username) {
+    let users = JSON.parse(localStorage.getItem('users'));
+    let user = users.find(u => u.username === username);
+    
+    if (user) {
+        user.balance = parseInt(document.getElementById(`balance_${username}`).value) || 0;
+        user.profit = parseInt(document.getElementById(`profit_${username}`).value) || 0;
+        
+        localStorage.setItem('users', JSON.stringify(users));
+        
+        document.getElementById('userEditSuccess').textContent = 'Kullanıcı bilgileri güncellendi!';
+        document.getElementById('userEditSuccess').style.display = 'block';
+        
+        setTimeout(() => {
+            document.getElementById('userEditSuccess').style.display = 'none';
+        }, 2000);
+    }
+}
+
+function deleteUser(username) {
+    if (!confirm(`${username} kullanıcısını silmek istediğinizden emin misiniz?\nBu işlem geri alınamaz!`)) {
+        return;
+    }
+
+    let users = JSON.parse(localStorage.getItem('users'));
+    users = users.filter(u => u.username !== username);
+    localStorage.setItem('users', JSON.stringify(users));
+
+    let transactions = JSON.parse(localStorage.getItem('transactions'));
+    transactions = transactions.filter(t => t.username !== username);
+    localStorage.setItem('transactions', JSON.stringify(transactions));
+
+    loadAdminUsers();
+
+    document.getElementById('userEditSuccess').textContent = 'Kullanıcı başarıyla silindi!';
+    document.getElementById('userEditSuccess').style.display = 'block';
+    setTimeout(() => {
+        document.getElementById('userEditSuccess').style.display = 'none';
+    }, 2000);
+}
+
+// Kullanıcı bakiye güncelleme
+function updateUserBalance() {
+    let users = JSON.parse(localStorage.getItem('users'));
+    let user = users.find(u => u.username === currentUser.username);
+    
+    if (user) {
+        document.getElementById('userBalance').textContent = (user.balance || 0);
+        document.getElementById('userProfit').textContent = (user.profit || 0);
+    }
+}
+
+// Yatırım dağılımı grafiği
+function updateInvestmentChart() {
+    let transactions = JSON.parse(localStorage.getItem('transactions'));
+    let userTransactions = transactions.filter(t => 
+        t.username === currentUser.username && t.status === 'approved'
+    );
+
+    let investmentTypes = ['hisse', 'doviz', 'altin', 'kripto', 'fon'];
+    let data = investmentTypes.map(type => {
+        return userTransactions
+            .filter(t => t.investmentType === type)
+            .reduce((sum, t) => sum + t.amount, 0);
+    });
+
+    let ctx = document.getElementById('investmentChart').getContext('2d');
+    
+    if (window.myChart) {
+        window.myChart.destroy();
+    }
+
+    window.myChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: ['Hisse Senetleri', 'Döviz', 'Altın', 'Kripto Para', 'Yatırım Fonu'],
+            datasets: [{
+                data: data,
+                backgroundColor: [
+                    '#4e73df',
+                    '#1cc88a',
+                    '#f6c23e',
+                    '#36b9cc',
+                    '#e74a3b'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+}
+
+// Admin sekmeleri
+function showAdminTab(tab, btn) {
+    // Tüm sekmeleri gizle
+    document.getElementById('dashboardTab').style.display = tab === 'dashboard' ? 'block' : 'none';
+    document.getElementById('pendingTab').style.display = tab === 'pending' ? 'block' : 'none';
+    document.getElementById('approvedTab').style.display = tab === 'approved' ? 'block' : 'none';
+    document.getElementById('usersTab').style.display = tab === 'users' ? 'block' : 'none';
+    document.getElementById('leaderboardTab').style.display = tab === 'leaderboard' ? 'block' : 'none';
+    document.getElementById('calculatorTab').style.display = tab === 'calculator' ? 'block' : 'none';
+    document.getElementById('ratesTab').style.display = tab === 'rates' ? 'block' : 'none';
+    document.getElementById('portfolioTab').style.display = tab === 'portfolio' ? 'block' : 'none';
+    document.getElementById('predictionsTab').style.display = tab === 'predictions' ? 'block' : 'none';
+    document.getElementById('autoinvestTab').style.display = tab === 'autoinvest' ? 'block' : 'none';
+    document.getElementById('healthTab').style.display = tab === 'health' ? 'block' : 'none';
+    document.getElementById('apiTab').style.display = tab === 'api' ? 'block' : 'none';
+    document.getElementById('reportsTab').style.display = tab === 'reports' ? 'block' : 'none';
+    document.getElementById('riskTab').style.display = tab === 'risk' ? 'block' : 'none';
+    document.getElementById('documentsTab').style.display = tab === 'documents' ? 'block' : 'none';
+    document.getElementById('newsTab').style.display = tab === 'news' ? 'block' : 'none';
+    document.getElementById('settingsTab').style.display = tab === 'settings' ? 'block' : 'none';
+    
+    // Aktif sekme butonunu güncelle
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    
+    // Sekme içeriklerini yükle
+    if (tab === 'dashboard') loadDashboard();
+    if (tab === 'users') loadAdminUsers();
+    if (tab === 'pending') loadPendingTransactions();
+    if (tab === 'approved') loadApprovedTransactions();
+    if (tab === 'leaderboard') updateLeaderboard();
+    if (tab === 'health') refreshSystemHealth();
+    if (tab === 'autoinvest') loadActivePlans();
+    if (tab === 'reports') {
+        // Tarih alanlarını bugünün tarihi ile doldur
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('reportStartDate').value = today;
+        document.getElementById('reportEndDate').value = today;
+        generatePerformanceReport();
+    }
+    if (tab === 'risk') calculateRiskMetrics();
+    if (tab === 'documents') loadDocuments();
+    if (tab === 'news') loadNews();
+    if (tab === 'settings') {
+        // Admin ayarları sekmesi için Enter tuşu bağlantısını kur
+        const adminNewPass2 = document.getElementById('adminNewPassword2');
+        if (adminNewPass2 && !adminNewPass2._enterBound) {
+            adminNewPass2.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') changeAdminPassword();
+            });
+            adminNewPass2._enterBound = true;
+        }
+    }
+}
+
+// Çıkış
+function logout() {
+    currentUser = null;
+    document.getElementById('loginUsername').value = '';
+    document.getElementById('loginPassword').value = '';
+    document.getElementById('authContainer').style.display = 'block';
+    document.getElementById('userPanel').style.display = 'none';
+    document.getElementById('adminPanel').style.display = 'none';
+    showLogin();
+}
+
+// Enter tuşu ile giriş
+document.getElementById('loginPassword').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') login();
+});
+
+// Dark Mode Toggle
+function toggleTheme() {
+    const body = document.body;
+    const themeIcon = document.getElementById('themeIcon');
+    
+    if (body.classList.contains('dark-mode')) {
+        body.classList.remove('dark-mode');
+        themeIcon.textContent = '🌙';
+        localStorage.setItem('theme', 'light');
+    } else {
+        body.classList.add('dark-mode');
+        themeIcon.textContent = '☀️';
+        localStorage.setItem('theme', 'dark');
+    }
+}
+
+// Load saved theme
+function loadTheme() {
+    const savedTheme = localStorage.getItem('theme');
+    const themeIcon = document.getElementById('themeIcon');
+    
+    if (savedTheme === 'dark') {
+        document.body.classList.add('dark-mode');
+        themeIcon.textContent = '☀️';
+    } else {
+        themeIcon.textContent = '🌙';
+    }
+}
+
+// Yeni Gelişmiş Fonksiyonlar
+
+// Dashboard
+function loadDashboard() {
+    const users = JSON.parse(localStorage.getItem('users'));
+    const transactions = JSON.parse(localStorage.getItem('transactions'));
+    
+    // Genel istatistikler
+    const totalUsers = users.filter(u => u.username !== 'admin').length;
+    const totalBalance = users.reduce((sum, u) => sum + (u.balance || 0), 0);
+    const pendingTransactions = transactions.filter(t => t.status === 'pending').length;
+    const approvedTransactions = transactions.filter(t => t.status === 'approved').length;
+    
+    document.getElementById('totalUsers').textContent = totalUsers;
+    document.getElementById('totalBalance').textContent = totalBalance.toLocaleString() + ' TL';
+    document.getElementById('pendingTransactions').textContent = pendingTransactions;
+    document.getElementById('approvedTransactions').textContent = approvedTransactions;
+    
+    // Finansal özet hesaplamaları
+    const approvedInvestmentTransactions = transactions.filter(t => t.status === 'approved');
+    const totalInvestmentsReceived = approvedInvestmentTransactions.reduce((sum, t) => sum + t.amount, 0);
+    const totalProfitsPaid = users.reduce((sum, u) => sum + (u.profit || 0), 0);
+    const netIncome = totalInvestmentsReceived - totalProfitsPaid;
+    const averageInvestment = approvedTransactions > 0 ? totalInvestmentsReceived / approvedTransactions : 0;
+    
+    // Finansal özet gösterimi
+    document.getElementById('totalInvestmentsReceived').textContent = totalInvestmentsReceived.toLocaleString() + ' TL';
+    document.getElementById('totalProfitsPaid').textContent = totalProfitsPaid.toLocaleString() + ' TL';
+    document.getElementById('netIncome').textContent = netIncome.toLocaleString() + ' TL';
+    document.getElementById('averageInvestment').textContent = Math.round(averageInvestment).toLocaleString() + ' TL';
+    
+    // Net gelir rengini ayarla (pozitif/negatif)
+    const netIncomeElement = document.getElementById('netIncome');
+    if (netIncome >= 0) {
+        netIncomeElement.style.color = '#28a745';
+    } else {
+        netIncomeElement.style.color = '#dc3545';
+    }
+    
+    // Sistem performansı
+    const totalProfit = users.reduce((sum, u) => sum + (u.profit || 0), 0);
+    
+    // En aktif kullanıcı
+    const userTransactionCounts = {};
+    transactions.forEach(t => {
+        userTransactionCounts[t.username] = (userTransactionCounts[t.username] || 0) + 1;
+    });
+    const mostActiveUser = Object.keys(userTransactionCounts).reduce((a, b) => 
+        userTransactionCounts[a] > userTransactionCounts[b] ? a : b, '-');
+    
+    document.getElementById('avgInvestment').textContent = Math.round(averageInvestment).toLocaleString() + ' TL';
+    document.getElementById('mostActiveUser').textContent = mostActiveUser;
+    document.getElementById('totalProfit').textContent = totalProfit.toLocaleString() + ' TL';
+    
+    // Son aktiviteler
+    const recentActivities = transactions.slice(-5).reverse();
+    let activitiesHtml = '<table class="admin-users-table"><thead><tr><th>Tarih</th><th>Kullanıcı</th><th>İşlem</th><th>Durum</th></tr></thead><tbody>';
+    recentActivities.forEach(t => {
+        activitiesHtml += `<tr><td>${t.date}</td><td>${t.username}</td><td>${t.investmentType} - ${t.amount} TL</td><td class="status-${t.status}">${t.status === 'pending' ? 'Beklemede' : t.status === 'approved' ? 'Onaylandı' : 'Reddedildi'}</td></tr>`;
+    });
+    activitiesHtml += '</tbody></table>';
+    document.getElementById('recentActivities').innerHTML = activitiesHtml;
+}
+
+// Leaderboard
+function updateLeaderboard() {
+    const users = JSON.parse(localStorage.getItem('users'));
+    const transactions = JSON.parse(localStorage.getItem('transactions'));
+    const type = document.getElementById('leaderboardType').value;
+    
+    let sortedUsers = users.filter(u => u.username !== 'admin').map(user => {
+        const userTransactions = transactions.filter(t => t.username === user.username && t.status === 'approved');
+        const totalInvestment = userTransactions.reduce((sum, t) => sum + t.amount, 0);
+        const growthRate = totalInvestment > 0 ? ((user.profit || 0) / totalInvestment) * 100 : 0;
+        
+        return {
+            ...user,
+            totalInvestment,
+            transactionCount: userTransactions.length,
+            growthRate
+        };
+    });
+    
+    // Sıralama
+    switch(type) {
+        case 'profit':
+            sortedUsers.sort((a, b) => (b.profit || 0) - (a.profit || 0));
+            break;
+        case 'balance':
+            sortedUsers.sort((a, b) => (b.balance || 0) - (a.balance || 0));
+            break;
+        case 'growth':
+            sortedUsers.sort((a, b) => b.growthRate - a.growthRate);
+            break;
+        case 'transactions':
+            sortedUsers.sort((a, b) => b.transactionCount - a.transactionCount);
+            break;
+    }
+    
+    let html = '<table class="admin-users-table"><thead><tr><th>Sıra</th><th>Kullanıcı</th><th>Ad Soyad</th><th>Bakiye</th><th>Kar</th><th>Büyüme</th><th>İşlem Sayısı</th></tr></thead><tbody>';
+    sortedUsers.forEach((user, index) => {
+        html += `<tr>
+            <td>${index + 1}</td>
+            <td>${user.username}</td>
+            <td>${user.fullName}</td>
+            <td>${(user.balance || 0).toLocaleString()} TL</td>
+            <td>${(user.profit || 0).toLocaleString()} TL</td>
+            <td>${user.growthRate.toFixed(2)}%</td>
+            <td>${user.transactionCount}</td>
+        </tr>`;
+    });
+    html += '</tbody></table>';
+    document.getElementById('leaderboardList').innerHTML = html;
+}
+
+// Faiz Hesaplayıcı
+function calculateCompoundInterest() {
+    const principal = parseFloat(document.getElementById('principal').value) || 0;
+    const rate = parseFloat(document.getElementById('interestRate').value) || 0;
+    const years = parseFloat(document.getElementById('years').value) || 0;
+    const monthlyContribution = parseFloat(document.getElementById('monthlyContribution').value) || 0;
+    
+    const monthlyRate = rate / 100 / 12;
+    const months = years * 12;
+    
+    // Bileşik faiz hesaplama
+    let futureValue = principal * Math.pow(1 + monthlyRate, months);
+    
+    // Aylık katkılar için gelecek değer
+    if (monthlyContribution > 0) {
+        futureValue += monthlyContribution * ((Math.pow(1 + monthlyRate, months) - 1) / monthlyRate);
+    }
+    
+    const totalInvested = principal + (monthlyContribution * months);
+    const totalInterest = futureValue - totalInvested;
+    
+    document.getElementById('interestResult').innerHTML = `
+        <div class="portfolio-item">
+            <h4>Bileşik Faiz Hesaplama Sonucu</h4>
+            <p><strong>Toplam Yatırım:</strong> ${totalInvested.toLocaleString()} TL</p>
+            <p><strong>Gelecek Değer:</strong> ${futureValue.toLocaleString()} TL</p>
+            <p><strong>Toplam Faiz:</strong> ${totalInterest.toLocaleString()} TL</p>
+            <p><strong>Faiz Oranı:</strong> ${((totalInterest / totalInvested) * 100).toFixed(2)}%</p>
+        </div>
+    `;
+}
+
+function calculateROI() {
+    const initial = parseFloat(document.getElementById('initialInvestment').value) || 0;
+    const current = parseFloat(document.getElementById('currentValue').value) || 0;
+    const days = parseFloat(document.getElementById('investmentDays').value) || 0;
+    
+    const profit = current - initial;
+    const roi = (profit / initial) * 100;
+    const annualizedROI = (Math.pow(current / initial, 365 / days) - 1) * 100;
+    
+    document.getElementById('roiResult').innerHTML = `
+        <div class="portfolio-item">
+            <h4>Yatırım Getiri Analizi</h4>
+            <p><strong>Toplam Kar/Zarar:</strong> ${profit.toLocaleString()} TL</p>
+            <p><strong>Getiri Oranı:</strong> ${roi.toFixed(2)}%</p>
+            <p><strong>Yıllık Getiri:</strong> ${annualizedROI.toFixed(2)}%</p>
+            <p><strong>Günlük Ortalama:</strong> ${(profit / days).toFixed(2)} TL</p>
+        </div>
+    `;
+}
+
+// Döviz Kurları
+let currentRates = {};
+
+function updateRates() {
+    // Simulated rates (gerçek API entegrasyonu için)
+    currentRates = {
+        USD: { rate: 34.50, change: '+0.5%' },
+        EUR: { rate: 37.20, change: '-0.2%' },
+        GBP: { rate: 43.80, change: '+1.1%' },
+        GOLD: { rate: 2850.50, change: '+0.8%' }
+    };
+    
+    let html = '<table class="admin-users-table"><thead><tr><th>Para Birimi</th><th>Kur (TRY)</th><th>Değişim</th><th>Son Güncelleme</th></tr></thead><tbody>';
+    
+    Object.keys(currentRates).forEach(currency => {
+        const data = currentRates[currency];
+        const currencyName = currency === 'GOLD' ? 'Altın (Gram)' : currency;
+        html += `<tr>
+            <td>${currencyName}</td>
+            <td>${data.rate.toLocaleString()}</td>
+            <td style="color: ${data.change.startsWith('+') ? '#28a745' : '#dc3545'}">${data.change}</td>
+            <td>${new Date().toLocaleString('tr-TR')}</td>
+        </tr>`;
+    });
+    
+    html += '</tbody></table>';
+    document.getElementById('ratesDisplay').innerHTML = html;
+}
+
+function convertCurrency() {
+    const amount = parseFloat(document.getElementById('convertAmount').value) || 0;
+    const from = document.getElementById('fromCurrency').value;
+    const to = document.getElementById('toCurrency').value;
+    
+    if (Object.keys(currentRates).length === 0) {
+        alert('Önce kurları güncelleyin!');
+        return;
+    }
+    
+    let fromRate = 1;
+    let toRate = 1;
+    
+    if (from !== 'TRY') fromRate = currentRates[from]?.rate || 1;
+    if (to !== 'TRY') toRate = currentRates[to]?.rate || 1;
+    
+    const result = (amount * fromRate) / toRate;
+    
+    document.getElementById('conversionResult').innerHTML = `
+        <div class="portfolio-item">
+            <h4>Kur Dönüşüm Sonucu</h4>
+            <p><strong>${amount.toLocaleString()} ${from}</strong> = <strong>${result.toLocaleString()} ${to}</strong></p>
+        </div>
+    `;
+}
+
+// Portföy Optimizasyonu
+function optimizePortfolio() {
+    const targetStocks = parseFloat(document.getElementById('targetStocks').value) || 0;
+    const targetForex = parseFloat(document.getElementById('targetForex').value) || 0;
+    const targetGold = parseFloat(document.getElementById('targetGold').value) || 0;
+    const targetCrypto = parseFloat(document.getElementById('targetCrypto').value) || 0;
+    const targetFunds = parseFloat(document.getElementById('targetFunds').value) || 0;
+    
+    const total = targetStocks + targetForex + targetGold + targetCrypto + targetFunds;
+    
+    if (Math.abs(total - 100) > 0.1) {
+        alert('Toplam yüzde 100 olmalıdır!');
+        return;
+    }
+    
+    const user = currentUser;
+    const totalBalance = user.balance || 0;
+    
+    const recommendations = [
+        { type: 'Hisse Senetleri', current: 0, target: targetStocks, amount: (totalBalance * targetStocks / 100) },
+        { type: 'Döviz', current: 0, target: targetForex, amount: (totalBalance * targetForex / 100) },
+        { type: 'Altın', current: 0, target: targetGold, amount: (totalBalance * targetGold / 100) },
+        { type: 'Kripto Para', current: 0, target: targetCrypto, amount: (totalBalance * targetCrypto / 100) },
+        { type: 'Yatırım Fonu', current: 0, target: targetFunds, amount: (totalBalance * targetFunds / 100) }
+    ];
+    
+    let html = '<h4>Portföy Optimizasyon Önerileri</h4><table class="admin-users-table"><thead><tr><th>Yatırım Türü</th><th>Hedef %</th><th>Önerilen Miktar</th><th>Eylem</th></tr></thead><tbody>';
+    
+    recommendations.forEach(rec => {
+        const action = rec.amount > 0 ? `Yatırım yap: ${rec.amount.toLocaleString()} TL` : 'Yatırım yapma';
+        html += `<tr>
+            <td>${rec.type}</td>
+            <td>${rec.target}%</td>
+            <td>${rec.amount.toLocaleString()} TL</td>
+            <td>${action}</td>
+        </tr>`;
+    });
+    
+    html += '</tbody></table>';
+    document.getElementById('portfolioOptimization').innerHTML = html;
+}
+
+// AI Tahminler
+function generatePrediction() {
+    const type = document.getElementById('predictionType').value;
+    
+    // Simulated AI predictions
+    const predictions = {
+        hisse: {
+            trend: 'Yükseliş',
+            confidence: 75,
+            recommendation: 'Alım',
+            reason: 'Teknik analiz göstergeleri pozitif sinyal veriyor'
+        },
+        doviz: {
+            trend: 'Düşüş',
+            confidence: 60,
+            recommendation: 'Bekle',
+            reason: 'Merkez bankası politikaları belirsizlik yaratıyor'
+        },
+        altin: {
+            trend: 'Yükseliş',
+            confidence: 80,
+            recommendation: 'Alım',
+            reason: 'Enflasyon endişeleri altın talebini artırıyor'
+        },
+        kripto: {
+            trend: 'Volatil',
+            confidence: 45,
+            recommendation: 'Dikkatli',
+            reason: 'Yüksek volatilite bekleniyor'
+        }
+    };
+    
+    const pred = predictions[type];
+    const typeNames = {
+        hisse: 'Hisse Senetleri',
+        doviz: 'Döviz',
+        altin: 'Altın',
+        kripto: 'Kripto Para'
+    };
+    
+    document.getElementById('predictionResult').innerHTML = `
+        <div class="portfolio-item">
+            <h4>${typeNames[type]} - AI Tahmin Analizi</h4>
+            <p><strong>Trend:</strong> ${pred.trend}</p>
+            <p><strong>Güven Seviyesi:</strong> ${pred.confidence}%</p>
+            <p><strong>Öneri:</strong> ${pred.recommendation}</p>
+            <p><strong>Açıklama:</strong> ${pred.reason}</p>
+        </div>
+    `;
+}
+
+// Otomatik Yatırım Planları
+let autoPlans = JSON.parse(localStorage.getItem('autoPlans')) || [];
+
+function createAutoPlan() {
+    const planName = document.getElementById('planName').value.trim();
+    const investmentType = document.getElementById('autoInvestmentType').value;
+    const amount = parseFloat(document.getElementById('autoAmount').value) || 0;
+    const frequency = document.getElementById('autoFrequency').value;
+    
+    if (!planName || amount <= 0) {
+        alert('Plan adı ve miktar gereklidir!');
+        return;
+    }
+    
+    const plan = {
+        id: Date.now(),
+        name: planName,
+        type: investmentType,
+        amount: amount,
+        frequency: frequency,
+        nextExecution: getNextExecutionDate(frequency),
+        active: true,
+        created: new Date().toISOString()
+    };
+    
+    autoPlans.push(plan);
+    localStorage.setItem('autoPlans', JSON.stringify(autoPlans));
+    loadActivePlans();
+    
+    alert('Otomatik yatırım planı oluşturuldu!');
+}
+
+function getNextExecutionDate(frequency) {
+    const now = new Date();
+    switch(frequency) {
+        case 'weekly':
+            return new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString();
+        case 'monthly':
+            return new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString();
+        case 'quarterly':
+            return new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000).toISOString();
+        default:
+            return now.toISOString();
+    }
+}
+
+function loadActivePlans() {
+    let html = '<table class="admin-users-table"><thead><tr><th>Plan Adı</th><th>Tür</th><th>Miktar</th><th>Frekans</th><th>Sonraki Yürütme</th><th>Durum</th><th>İşlemler</th></tr></thead><tbody>';
+    
+    autoPlans.forEach(plan => {
+        const nextDate = new Date(plan.nextExecution).toLocaleDateString('tr-TR');
+        html += `<tr>
+            <td>${plan.name}</td>
+            <td>${plan.type}</td>
+            <td>${plan.amount.toLocaleString()} TL</td>
+            <td>${plan.frequency}</td>
+            <td>${nextDate}</td>
+            <td>${plan.active ? 'Aktif' : 'Pasif'}</td>
+            <td>
+                <button class="admin-action-btn" onclick="togglePlan(${plan.id})">${plan.active ? 'Durdur' : 'Başlat'}</button>
+                <button class="admin-action-btn delete-btn" onclick="deletePlan(${plan.id})">Sil</button>
+            </td>
+        </tr>`;
+    });
+    
+    html += '</tbody></table>';
+    document.getElementById('activePlans').innerHTML = html;
+}
+
+function togglePlan(planId) {
+    const plan = autoPlans.find(p => p.id === planId);
+    if (plan) {
+        plan.active = !plan.active;
+        localStorage.setItem('autoPlans', JSON.stringify(autoPlans));
+        loadActivePlans();
+    }
+}
+
+function deletePlan(planId) {
+    if (confirm('Bu planı silmek istediğinizden emin misiniz?')) {
+        autoPlans = autoPlans.filter(p => p.id !== planId);
+        localStorage.setItem('autoPlans', JSON.stringify(autoPlans));
+        loadActivePlans();
+    }
+}
+
+// Sistem Sağlığı
+function refreshSystemHealth() {
+    const startTime = performance.now();
+    
+    // Sayfa yükleme süresi
+    const loadTime = performance.now() - startTime;
+    document.getElementById('pageLoadTime').textContent = loadTime.toFixed(2) + ' ms';
+    
+    // LocalStorage kullanımı
+    let totalSize = 0;
+    for (let key in localStorage) {
+        if (localStorage.hasOwnProperty(key)) {
+            totalSize += localStorage[key].length;
+        }
+    }
+    document.getElementById('storageUsage').textContent = (totalSize / 1024).toFixed(2) + ' KB';
+    
+    // Aktif kullanıcılar
+    const users = JSON.parse(localStorage.getItem('users'));
+    const activeUsers = users.filter(u => u.username !== 'admin').length;
+    document.getElementById('activeUsers').textContent = activeUsers;
+    
+    // Sistem durumu
+    const status = loadTime < 1000 && totalSize < 1024 * 1024 ? '✅ Sağlıklı' : '⚠️ Dikkat';
+    const statusColor = loadTime < 1000 && totalSize < 1024 * 1024 ? '#28a745' : '#ffc107';
+    document.getElementById('systemStatus').textContent = status;
+    document.getElementById('systemStatus').style.color = statusColor;
+}
+
+// API Yönetimi
+function saveApiKeys() {
+    const keys = {
+        currency: document.getElementById('currencyApiKey').value,
+        stock: document.getElementById('stockApiKey').value,
+        gold: document.getElementById('goldApiKey').value
+    };
+    
+    localStorage.setItem('apiKeys', JSON.stringify(keys));
+    alert('API anahtarları kaydedildi!');
+}
+
+function testApis() {
+    const keys = JSON.parse(localStorage.getItem('apiKeys')) || {};
+    let results = '<h4>API Test Sonuçları</h4>';
+    
+    // Simulated API tests
+    results += '<div class="portfolio-item">';
+    results += '<p><strong>Döviz API:</strong> ' + (keys.currency ? '✅ Bağlantı başarılı' : '❌ Anahtar yok') + '</p>';
+    results += '<p><strong>Borsa API:</strong> ' + (keys.stock ? '✅ Bağlantı başarılı' : '❌ Anahtar yok') + '</p>';
+    results += '<p><strong>Altın API:</strong> ' + (keys.gold ? '✅ Bağlantı başarılı' : '❌ Anahtar yok') + '</p>';
+    results += '</div>';
+    
+    document.getElementById('apiTestResults').innerHTML = results;
+}
+
+// Performans Raporları
+function generatePerformanceReport() {
+    const period = document.getElementById('reportPeriod').value;
+    const startDate = document.getElementById('reportStartDate').value;
+    const endDate = document.getElementById('reportEndDate').value;
+    
+    const transactions = JSON.parse(localStorage.getItem('transactions'));
+    const users = JSON.parse(localStorage.getItem('users'));
+    
+    // Tarih filtreleme
+    let filteredTransactions = transactions.filter(t => {
+        const transactionDate = new Date(t.date);
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        return transactionDate >= start && transactionDate <= end;
+    });
+    
+    const approvedTransactions = filteredTransactions.filter(t => t.status === 'approved');
+    const totalInvestment = approvedTransactions.reduce((sum, t) => sum + t.amount, 0);
+    const totalUsers = users.filter(u => u.username !== 'admin').length;
+    const totalProfit = users.reduce((sum, u) => sum + (u.profit || 0), 0);
+    
+    // Performans metrikleri
+    const avgInvestment = approvedTransactions.length > 0 ? totalInvestment / approvedTransactions.length : 0;
+    const roi = totalInvestment > 0 ? (totalProfit / totalInvestment) * 100 : 0;
+    
+    // Yatırım türü dağılımı
+    const investmentTypes = {};
+    approvedTransactions.forEach(t => {
+        investmentTypes[t.investmentType] = (investmentTypes[t.investmentType] || 0) + t.amount;
+    });
+    
+    let summaryHtml = `
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin: 20px 0;">
+            <div class="portfolio-item">
+                <h4>Toplam Yatırım</h4>
+                <div style="font-size: 1.5em; color: #17a2b8;">${totalInvestment.toLocaleString()} TL</div>
+            </div>
+            <div class="portfolio-item">
+                <h4>Toplam Kar</h4>
+                <div style="font-size: 1.5em; color: #28a745;">${totalProfit.toLocaleString()} TL</div>
+            </div>
+            <div class="portfolio-item">
+                <h4>ROI</h4>
+                <div style="font-size: 1.5em; color: #6f42c1;">${roi.toFixed(2)}%</div>
+            </div>
+            <div class="portfolio-item">
+                <h4>Ortalama Yatırım</h4>
+                <div style="font-size: 1.5em; color: #ffc107;">${avgInvestment.toLocaleString()} TL</div>
+            </div>
+        </div>
+        
+        <h4>Yatırım Türü Dağılımı</h4>
+        <table class="admin-users-table">
+            <thead><tr><th>Yatırım Türü</th><th>Miktar (TL)</th><th>Yüzde</th></tr></thead>
+            <tbody>
+    `;
+    
+    Object.keys(investmentTypes).forEach(type => {
+        const amount = investmentTypes[type];
+        const percentage = totalInvestment > 0 ? (amount / totalInvestment) * 100 : 0;
+        summaryHtml += `<tr><td>${type.toUpperCase()}</td><td>${amount.toLocaleString()}</td><td>${percentage.toFixed(2)}%</td></tr>`;
+    });
+    
+    summaryHtml += '</tbody></table>';
+    document.getElementById('performanceSummary').innerHTML = summaryHtml;
+    
+    // Grafik oluştur
+    createPerformanceChart(approvedTransactions);
+}
+
+function createPerformanceChart(transactions) {
+    const ctx = document.getElementById('performanceChart').getContext('2d');
+    
+    // Günlük kümülatif yatırım hesapla
+    const dailyData = {};
+    transactions.forEach(t => {
+        const date = t.date.split(' ')[0];
+        dailyData[date] = (dailyData[date] || 0) + t.amount;
+    });
+    
+    const sortedDates = Object.keys(dailyData).sort();
+    const cumulativeData = [];
+    let cumulative = 0;
+    
+    sortedDates.forEach(date => {
+        cumulative += dailyData[date];
+        cumulativeData.push(cumulative);
+    });
+    
+    if (window.performanceChartInstance) {
+        window.performanceChartInstance.destroy();
+    }
+    
+    window.performanceChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: sortedDates,
+            datasets: [{
+                label: 'Kümülatif Yatırım (TL)',
+                data: cumulativeData,
+                borderColor: '#1e3c72',
+                backgroundColor: 'rgba(30, 60, 114, 0.1)',
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return value.toLocaleString() + ' TL';
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+function exportReport() {
+    // Basit PDF export simülasyonu
+    const summary = document.getElementById('performanceSummary').innerHTML;
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+        <html>
+        <head><title>Performans Raporu</title></head>
+        <body>
+            <h1>Performans Raporu</h1>
+            <p>Tarih: ${new Date().toLocaleString()}</p>
+            ${summary}
+        </body>
+        </html>
+    `);
+    printWindow.print();
+}
+
+// Risk Analizi
+function calculateRiskMetrics() {
+    const users = JSON.parse(localStorage.getItem('users'));
+    const transactions = JSON.parse(localStorage.getItem('transactions'));
+    
+    // Simulated risk calculations
+    const dailyVolatility = (Math.random() * 5 + 1).toFixed(2);
+    const sharpeRatio = (Math.random() * 2 + 0.5).toFixed(2);
+    const maxDrawdown = (Math.random() * 10 + 5).toFixed(2);
+    const var95 = (Math.random() * 1000 + 500).toFixed(0);
+    
+    document.getElementById('dailyVolatility').textContent = dailyVolatility + '%';
+    document.getElementById('sharpeRatio').textContent = sharpeRatio;
+    document.getElementById('maxDrawdown').textContent = maxDrawdown + '%';
+    document.getElementById('var95').textContent = var95 + ' TL';
+    
+    // Risk dağılım grafiği
+    createRiskChart();
+}
+
+function createRiskChart() {
+    const ctx = document.getElementById('riskChart').getContext('2d');
+    
+    if (window.riskChartInstance) {
+        window.riskChartInstance.destroy();
+    }
+    
+    window.riskChartInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Düşük Risk', 'Orta Risk', 'Yüksek Risk'],
+            datasets: [{
+                data: [40, 35, 25],
+                backgroundColor: ['#28a745', '#ffc107', '#dc3545']
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+}
+
+// Doküman Yönetimi
+function uploadDocument() {
+    const type = document.getElementById('documentType').value;
+    const title = document.getElementById('documentTitle').value;
+    const file = document.getElementById('documentFile').files[0];
+    
+    if (!title || !file) {
+        alert('Lütfen tüm alanları doldurun!');
+        return;
+    }
+    
+    const documents = JSON.parse(localStorage.getItem('documents')) || [];
+    const newDocument = {
+        id: Date.now(),
+        type: type,
+        title: title,
+        fileName: file.name,
+        uploadDate: new Date().toLocaleString(),
+        size: file.size
+    };
+    
+    documents.push(newDocument);
+    localStorage.setItem('documents', JSON.stringify(documents));
+    
+    loadDocuments();
+    alert('Doküman başarıyla yüklendi!');
+    
+    // Formu temizle
+    document.getElementById('documentTitle').value = '';
+    document.getElementById('documentFile').value = '';
+}
+
+function loadDocuments() {
+    const documents = JSON.parse(localStorage.getItem('documents')) || [];
+    
+    let html = '<table class="admin-users-table"><thead><tr><th>Başlık</th><th>Tür</th><th>Dosya Adı</th><th>Boyut</th><th>Yükleme Tarihi</th><th>İşlemler</th></tr></thead><tbody>';
+    
+    documents.forEach(doc => {
+        const sizeKB = (doc.size / 1024).toFixed(1);
+        html += `
+            <tr>
+                <td>${doc.title}</td>
+                <td>${doc.type.toUpperCase()}</td>
+                <td>${doc.fileName}</td>
+                <td>${sizeKB} KB</td>
+                <td>${doc.uploadDate}</td>
+                <td>
+                    <button class="admin-action-btn" onclick="downloadDocument(${doc.id})">İndir</button>
+                    <button class="admin-action-btn delete-btn" onclick="deleteDocument(${doc.id})">Sil</button>
+                </td>
+            </tr>
+        `;
+    });
+    
+    html += '</tbody></table>';
+    document.getElementById('documentsList').innerHTML = html || 'Henüz doküman yüklenmemiş.';
+}
+
+function downloadDocument(id) {
+    alert('Doküman indirme simülasyonu - Gerçek uygulamada dosya indirilecek.');
+}
+
+function deleteDocument(id) {
+    if (confirm('Bu dokümanı silmek istediğinizden emin misiniz?')) {
+        let documents = JSON.parse(localStorage.getItem('documents')) || [];
+        documents = documents.filter(d => d.id !== id);
+        localStorage.setItem('documents', JSON.stringify(documents));
+        loadDocuments();
+    }
+}
+
+// Haber Akışı
+function loadNews() {
+    const category = document.getElementById('newsCategory').value;
+    
+    // Simulated news data
+    const newsData = {
+        all: [
+            { title: 'BIST 100 Endeksi Yükselişte', category: 'market', time: '2 saat önce', source: 'Bloomberg' },
+            { title: 'Bitcoin 50.000 Doları Aştı', category: 'crypto', time: '4 saat önce', source: 'CoinDesk' },
+            { title: 'Dolar/TL Kuru Stabil', category: 'forex', time: '6 saat önce', source: 'Reuters' },
+            { title: 'Apple Hisse Senetleri Yükseldi', category: 'stocks', time: '8 saat önce', source: 'CNBC' },
+            { title: 'Enflasyon Verileri Açıklandı', category: 'economy', time: '10 saat önce', source: 'TCMB' }
+        ],
+        market: [
+            { title: 'BIST 100 Endeksi Yükselişte', category: 'market', time: '2 saat önce', source: 'Bloomberg' },
+            { title: 'Piyasa Volatilitesi Düşük', category: 'market', time: '5 saat önce', source: 'Reuters' }
+        ],
+        crypto: [
+            { title: 'Bitcoin 50.000 Doları Aştı', category: 'crypto', time: '4 saat önce', source: 'CoinDesk' },
+            { title: 'Ethereum Yeni Rekor Kırdı', category: 'crypto', time: '7 saat önce', source: 'CoinTelegraph' }
+        ],
+        forex: [
+            { title: 'Dolar/TL Kuru Stabil', category: 'forex', time: '6 saat önce', source: 'Reuters' },
+            { title: 'Euro Güçlü Performans Gösteriyor', category: 'forex', time: '9 saat önce', source: 'Bloomberg' }
+        ],
+        stocks: [
+            { title: 'Apple Hisse Senetleri Yükseldi', category: 'stocks', time: '8 saat önce', source: 'CNBC' },
+            { title: 'Tesla Yeni Model Duyurdu', category: 'stocks', time: '12 saat önce', source: 'MarketWatch' }
+        ],
+        economy: [
+            { title: 'Enflasyon Verileri Açıklandı', category: 'economy', time: '10 saat önce', source: 'TCMB' },
+            { title: 'Merkez Bankası Faiz Kararı', category: 'economy', time: '1 gün önce', source: 'TCMB' }
+        ]
+    };
+    
+    const news = newsData[category] || newsData.all;
+    
+    let html = '';
+    news.forEach(item => {
+        html += `
+            <div class="portfolio-item" style="margin-bottom: 15px;">
+                <h4>${item.title}</h4>
+                <p><small>${item.time} - ${item.source}</small></p>
+                <button class="admin-action-btn" onclick="readFullNews('${item.title}')">Detayları Oku</button>
+            </div>
+        `;
+    });
+    
+    document.getElementById('newsFeed').innerHTML = html;
+}
+
+function readFullNews(title) {
+    alert(`"${title}" haberinin detayları burada görüntülenecek.\n\nGerçek uygulamada haber içeriği API'den çekilecek.`);
+}
+
+// Kullanıcı paneli yeni fonksiyonları
+function updatePerformanceChart() {
+    const period = parseInt(document.getElementById('performancePeriod').value);
+    const transactions = JSON.parse(localStorage.getItem('transactions'));
+    const userTransactions = transactions.filter(t => 
+        t.username === currentUser.username && t.status === 'approved'
+    );
+    
+    // Son N günün verilerini oluştur
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setDate(endDate.getDate() - period);
+    
+    const dailyData = {};
+    for (let i = 0; i < period; i++) {
+        const date = new Date();
+        date.setDate(endDate.getDate() - i);
+        const dateStr = date.toISOString().split('T')[0];
+        dailyData[dateStr] = 0;
+    }
+    
+    userTransactions.forEach(t => {
+        const transactionDate = new Date(t.date).toISOString().split('T')[0];
+        if (dailyData.hasOwnProperty(transactionDate)) {
+            dailyData[transactionDate] += t.amount;
+        }
+    });
+    
+    const sortedDates = Object.keys(dailyData).sort();
+    const amounts = sortedDates.map(date => dailyData[date]);
+    
+    const ctx = document.getElementById('performanceChart').getContext('2d');
+    
+    if (window.userPerformanceChart) {
+        window.userPerformanceChart.destroy();
+    }
+    
+    window.userPerformanceChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: sortedDates,
+            datasets: [{
+                label: 'Günlük Yatırım (TL)',
+                data: amounts,
+                borderColor: '#1e3c72',
+                backgroundColor: 'rgba(30, 60, 114, 0.1)',
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return value.toLocaleString() + ' TL';
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+function loadUserBadges() {
+    const user = currentUser;
+    const transactions = JSON.parse(localStorage.getItem('transactions'));
+    const userTransactions = transactions.filter(t => 
+        t.username === user.username && t.status === 'approved'
+    );
+    
+    // Seviye hesaplama
+    const totalInvestment = userTransactions.reduce((sum, t) => sum + t.amount, 0);
+    const transactionCount = userTransactions.length;
+    const profit = user.profit || 0;
+    
+    let level = 'Bronz';
+    let levelProgress = 35;
+    let points = 0;
+    
+    if (totalInvestment >= 100000) {
+        level = 'Elmas';
+        levelProgress = 100;
+        points = 2000;
+    } else if (totalInvestment >= 50000) {
+        level = 'Platin';
+        levelProgress = 75;
+        points = 1500;
+    } else if (totalInvestment >= 25000) {
+        level = 'Altın';
+        levelProgress = 50;
+        points = 1000;
+    } else if (totalInvestment >= 10000) {
+        level = 'Gümüş';
+        levelProgress = 25;
+        points = 500;
+    } else {
+        level = 'Bronz';
+        levelProgress = 10;
+        points = 100;
+    }
+    
+    document.getElementById('userLevel').textContent = level;
+    document.getElementById('levelProgress').style.width = levelProgress + '%';
+    
+    // Rozetler
+    const badges = [];
+    
+    if (transactionCount >= 1) badges.push({ name: 'İlk Yatırım', icon: '🎯', earned: true });
+    if (transactionCount >= 5) badges.push({ name: 'Aktif Yatırımcı', icon: '📈', earned: true });
+    if (transactionCount >= 10) badges.push({ name: 'Deneyimli', icon: '🏆', earned: true });
+    if (totalInvestment >= 10000) badges.push({ name: 'Büyük Yatırımcı', icon: '💰', earned: true });
+    if (totalInvestment >= 50000) badges.push({ name: 'VIP Yatırımcı', icon: '👑', earned: true });
+    if (profit > 0) badges.push({ name: 'Kar Eden', icon: '💎', earned: true });
+    if (profit >= 10000) badges.push({ name: 'Yüksek Kar', icon: '🚀', earned: true });
+    
+    // Henüz kazanılmamış rozetler
+    if (transactionCount < 5) badges.push({ name: 'Aktif Yatırımcı', icon: '📈', earned: false });
+    if (transactionCount < 10) badges.push({ name: 'Deneyimli', icon: '🏆', earned: false });
+    if (totalInvestment < 10000) badges.push({ name: 'Büyük Yatırımcı', icon: '💰', earned: false });
+    if (totalInvestment < 50000) badges.push({ name: 'VIP Yatırımcı', icon: '👑', earned: false });
+    if (profit < 10000) badges.push({ name: 'Yüksek Kar', icon: '🚀', earned: false });
+    
+    let badgesHtml = '';
+    badges.forEach(badge => {
+        const opacity = badge.earned ? '1' : '0.3';
+        const borderColor = badge.earned ? '#28a745' : '#ddd';
+        badgesHtml += `
+            <div style="text-align: center; padding: 15px; border: 2px solid ${borderColor}; border-radius: 10px; opacity: ${opacity};">
+                <div style="font-size: 2em; margin-bottom: 10px;">${badge.icon}</div>
+                <div style="font-weight: bold; font-size: 0.9em;">${badge.name}</div>
+                <div style="font-size: 0.8em; color: #666;">${badge.earned ? 'Kazanıldı' : 'Kazanılmadı'}</div>
+            </div>
+        `;
+    });
+    
+    document.getElementById('badgesContainer').innerHTML = badgesHtml;
+}
+
+function generateAIRecommendations() {
+    const user = currentUser;
+    const transactions = JSON.parse(localStorage.getItem('transactions'));
+    const userTransactions = transactions.filter(t => 
+        t.username === user.username && t.status === 'approved'
+    );
+    
+    // AI önerileri simülasyonu
+    const recommendations = [
+        {
+            type: 'hisse',
+            title: 'Teknoloji Hisseleri',
+            confidence: 85,
+            reason: 'Yapay zeka trendi devam ediyor, teknoloji hisseleri güçlü performans gösteriyor.',
+            action: 'Alım önerisi',
+            risk: 'Orta'
+        },
+        {
+            type: 'altin',
+            title: 'Altın Yatırımı',
+            confidence: 75,
+            reason: 'Enflasyon endişeleri altın talebini artırıyor.',
+            action: 'Alım önerisi',
+            risk: 'Düşük'
+        },
+        {
+            type: 'kripto',
+            title: 'Bitcoin',
+            confidence: 60,
+            reason: 'Kripto para piyasasında volatilite yüksek, dikkatli yaklaşın.',
+            action: 'Bekle',
+            risk: 'Yüksek'
+        }
+    ];
+    
+    let html = '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">';
+    
+    recommendations.forEach(rec => {
+        const riskColor = rec.risk === 'Düşük' ? '#28a745' : rec.risk === 'Orta' ? '#ffc107' : '#dc3545';
+        const actionColor = rec.action === 'Alım önerisi' ? '#28a745' : '#ffc107';
+        
+        html += `
+            <div class="portfolio-item">
+                <h4>${rec.title}</h4>
+                <p><strong>Güven Seviyesi:</strong> ${rec.confidence}%</p>
+                <p><strong>Risk:</strong> <span style="color: ${riskColor};">${rec.risk}</span></p>
+                <p><strong>Öneri:</strong> <span style="color: ${actionColor};">${rec.action}</span></p>
+                <p><strong>Açıklama:</strong> ${rec.reason}</p>
+                <button class="admin-action-btn" onclick="applyRecommendation('${rec.type}')">Uygula</button>
+            </div>
+        `;
+    });
+    
+    html += '</div>';
+    document.getElementById('aiRecommendations').innerHTML = html;
+}
+
+function applyRecommendation(type) {
+    alert(`${type.toUpperCase()} önerisi uygulandı! Gerçek uygulamada bu işlem otomatik yatırım planı oluşturacak.`);
+}
+
+function rebalancePortfolio() {
+    const targetStocks = parseFloat(document.getElementById('targetStocks').value) || 0;
+    const targetForex = parseFloat(document.getElementById('targetForex').value) || 0;
+    const targetGold = parseFloat(document.getElementById('targetGold').value) || 0;
+    const targetCrypto = parseFloat(document.getElementById('targetCrypto').value) || 0;
+    const targetFunds = parseFloat(document.getElementById('targetFunds').value) || 0;
+    
+    const total = targetStocks + targetForex + targetGold + targetCrypto + targetFunds;
+    
+    if (Math.abs(total - 100) > 0.1) {
+        alert('Toplam yüzde 100 olmalıdır!');
+        return;
+    }
+    
+    const user = currentUser;
+    const totalBalance = user.balance || 0;
+    
+    const recommendations = [
+        { type: 'Hisse Senetleri', current: 0, target: targetStocks, amount: (totalBalance * targetStocks / 100) },
+        { type: 'Döviz', current: 0, target: targetForex, amount: (totalBalance * targetForex / 100) },
+        { type: 'Altın', current: 0, target: targetGold, amount: (totalBalance * targetGold / 100) },
+        { type: 'Kripto Para', current: 0, target: targetCrypto, amount: (totalBalance * targetCrypto / 100) },
+        { type: 'Yatırım Fonu', current: 0, target: targetFunds, amount: (totalBalance * targetFunds / 100) }
+    ];
+    
+    let html = '<h4>Portföy Rebalancing Önerileri</h4><table class="admin-users-table"><thead><tr><th>Yatırım Türü</th><th>Hedef %</th><th>Önerilen Miktar</th><th>Eylem</th></tr></thead><tbody>';
+    
+    recommendations.forEach(rec => {
+        const action = rec.amount > 0 ? `Yatırım yap: ${rec.amount.toLocaleString()} TL` : 'Yatırım yapma';
+        html += `
+            <tr>
+                <td>${rec.type}</td>
+                <td>${rec.target}%</td>
+                <td>${rec.amount.toLocaleString()} TL</td>
+                <td>${action}</td>
+            </tr>
+        `;
+    });
+    
+    html += '</tbody></table>';
+    document.getElementById('rebalancingResult').innerHTML = html;
+}
+
+// Sayfa yüklendiğinde
+loadTheme();
+showLogin();
+</script>
+</body>
+</html>
